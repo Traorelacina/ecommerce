@@ -33,7 +33,7 @@ const MobileMenu = ({ open, onClose, navItems, user, onLogout }) => {
       <div className={`mobile-menu ${open ? 'open' : ''}`}>
         {/* En-tête du menu mobile */}
         <div className="mobile-menu-header">
-          <div className="mobile-menu-title">TechBoutique</div>
+          <div className="mobile-menu-title">Emarketafrica</div>
           <button className="mobile-menu-close" onClick={onClose}>
             <CloseOutlined />
           </button>

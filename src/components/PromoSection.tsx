@@ -122,9 +122,9 @@ const PromoSection = () => {
                       
                       <div className="promo-product-footer">
                         <div className="promo-product-prices">
-                          <div className="promo-current-price">{product.price.toFixed(2)} €</div>
+                          <div className="promo-current-price">{product.price.toFixed(2)} FCFA</div>
                           {product.oldPrice && (
-                            <div className="promo-old-price">{product.oldPrice.toFixed(2)} €</div>
+                            <div className="promo-old-price">{product.oldPrice.toFixed(2)} FCFA</div>
                           )}
                         </div>
                         

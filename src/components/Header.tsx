@@ -199,7 +199,7 @@ const HeaderComponent = () => {
           
           <div className="mobile-menu open">
             <div className="mobile-menu-header">
-              <div className="mobile-menu-title">TechBoutique</div>
+              <div className="mobile-menu-title">emarketafrica</div>
               <button 
                 className="mobile-menu-close" 
                 onClick={() => setMobileMenuOpen(false)}

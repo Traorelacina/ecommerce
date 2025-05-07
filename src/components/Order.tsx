@@ -63,7 +63,7 @@ const OrderPage = () => {
       dataIndex: 'price',
       key: 'price',
       render: (price) => (
-        <Text strong>€{price.toFixed(2)}</Text>
+        <Text strong>FCFA{price.toFixed(2)}</Text>
       ),
     },
     {
@@ -84,7 +84,7 @@ const OrderPage = () => {
       title: 'Total',
       key: 'total',
       render: (_, record) => (
-        <Text strong>€{(record.price * record.quantity).toFixed(2)}</Text>
+        <Text strong>FCFA{(record.price * record.quantity).toFixed(2)}</Text>
       ),
     },
     {
@@ -195,7 +195,7 @@ const OrderPage = () => {
             <Space direction="vertical" size="middle" className="summary-details">
               <div className="summary-row">
                 <Text>Articles ({totalItems})</Text>
-                <Text>€{calculateTotal().toFixed(2)}</Text>
+                <Text>FCFA{calculateTotal().toFixed(2)}</Text>
               </div>
               <div className="summary-row">
                 <Text>Livraison</Text>
@@ -207,7 +207,7 @@ const OrderPage = () => {
               <div className="summary-row total-row">
                 <Text strong>Total TTC</Text>
                 <Title level={4} className="total-amount">
-                  €{calculateTotal().toFixed(2)}
+                  FCFA{calculateTotal().toFixed(2)}
                 </Title>
               </div>
             </Space>

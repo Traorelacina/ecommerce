@@ -14,7 +14,7 @@ const testimonials = [
     rating: 5
   },
   {
-    name: "Thomas Dubois",
+    name: "Arnaud Yoboue",
     role: "Passionné de tech",
     comment: "Sélection impressionnante de produits tech.",
     rating: 4

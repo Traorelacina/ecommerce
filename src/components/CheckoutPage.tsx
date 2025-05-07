@@ -92,7 +92,7 @@ const CheckoutForm = ({ totalAmount, onBack }) => {
               label="Nom complet"
               rules={[{ required: true, message: 'Veuillez entrer votre nom' }]}
             >
-              <Input placeholder="Jean Dupont" />
+              <Input placeholder="ArnaudYOBOUE" />
             </Form.Item>
           </Col>
           <Col span={12}>
@@ -104,7 +104,7 @@ const CheckoutForm = ({ totalAmount, onBack }) => {
                 { type: 'email', message: 'Email invalide' }
               ]}
             >
-              <Input placeholder="jean.dupont@example.com" />
+              <Input placeholder="arnaudyoboue@emarketafrica.ci" />
             </Form.Item>
           </Col>
         </Row>
@@ -128,7 +128,7 @@ const CheckoutForm = ({ totalAmount, onBack }) => {
               label="Ville"
               rules={[{ required: true, message: 'Veuillez entrer votre ville' }]}
             >
-              <Input placeholder="Paris" />
+              <Input placeholder="Abidjan" />
             </Form.Item>
           </Col>
           <Col span={6}>
@@ -137,7 +137,7 @@ const CheckoutForm = ({ totalAmount, onBack }) => {
               label="Code postal"
               rules={[{ required: true, message: 'Veuillez entrer votre code postal' }]}
             >
-              <Input placeholder="75001" />
+              <Input placeholder="225" />
             </Form.Item>
           </Col>
           <Col span={6}>
@@ -145,13 +145,13 @@ const CheckoutForm = ({ totalAmount, onBack }) => {
               name="country"
               label="Pays"
               rules={[{ required: true, message: 'Veuillez sélectionner votre pays' }]}
-              initialValue="FR"
+              initialValue="CI"
             >
               <Select>
-                <Option value="FR">France</Option>
+                <Option value="CI">Côte d'Ivoire</Option>
                 <Option value="BE">Belgique</Option>
                 <Option value="CH">Suisse</Option>
-                <Option value="LU">Luxembourg</Option>
+                <Option value="FR">France</Option>
               </Select>
             </Form.Item>
           </Col>
