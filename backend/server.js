@@ -5,6 +5,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const path = require('path');
 const connectDB = require('./src/config/db');
+
 const errorHandler = require('./middlewares/error');
 
 // Charger les variables d'environnement

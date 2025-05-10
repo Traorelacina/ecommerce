@@ -30,8 +30,9 @@ const Home: React.FC = () => {
     const fetchProducts = async () => {
       try {
         const data = await getProducts();
-        setProducts(data);
+        setProducts(data.data); // ✅ extrait uniquement le tableau
         setLoading(false);
+        console.log(data);
       } catch (error) {
         console.error("Erreur lors de la récupération des produits :", error);
         setError("Une erreur est survenue lors du chargement des produits");
@@ -40,10 +41,13 @@ const Home: React.FC = () => {
     };
     fetchProducts();
   }, []);
+  
+  
 
   const featuredProducts = Array.isArray(products) ? products.slice(0, 4) : [];
   const newArrivals = Array.isArray(products) ? products.slice(4, 8) : [];
 
+    
   const heroImages = [
     '/images/banner1.jpg',
     '/images/banner2.jpg',
@@ -54,6 +58,7 @@ const Home: React.FC = () => {
   const renderProductsSection = (productsToRender, title, icon, linkText, linkPath) => {
     if (loading) {
       return (
+        
         <div className="products-loading-container">
           <Spin size="large" />
           <p>Chargement des produits...</p>
@@ -174,25 +179,7 @@ const Home: React.FC = () => {
         <Title level={2} className="section-title">
           Nos Catégories Populaires
         </Title>
-        <Row gutter={[16, 16]} justify="center">
-          {[
-            { name: 'Électronique', icon: '📱', path: '/category/electronics' },
-            { name: 'Mode', icon: '👗', path: '/category/fashion' },
-            { name: 'Alimentation', icon: '🍎', path: '/category/food' },
-            { name: 'Artisanat', icon: '🖼️', path: '/category/artisanat' },
-          ].map((category) => (
-            <Col key={category.name} xs={12} sm={8} md={6} lg={4}>
-              <Card 
-                hoverable 
-                className="category-card"
-                onClick={() => navigate(category.path)}
-              >
-                <Text className="category-icon">{category.icon}</Text>
-                <Text strong className="category-name">{category.name}</Text>
-              </Card>
-            </Col>
-          ))}
-        </Row>
+       
       </section>
 
       {/* Featured Products */}
@@ -203,6 +190,7 @@ const Home: React.FC = () => {
         'Voir tout', 
         '/products'
       )}
+      
 
       {/* New Arrivals */}
       {renderProductsSection(

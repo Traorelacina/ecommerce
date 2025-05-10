@@ -1,23 +1,6 @@
 import React from 'react';
-import { 
-  Table, 
-  Button, 
-  InputNumber, 
-  Space, 
-  Typography, 
-  Card, 
-  Divider,
-  Popconfirm,
-  message,
-  Image,
-  Badge
-} from 'antd';
-import { 
-  ShoppingCartOutlined, 
-  DeleteOutlined, 
-  ArrowLeftOutlined,
-  CreditCardOutlined
-} from '@ant-design/icons';
+import { Table, Button, InputNumber, Space, Typography, Card, Divider, Popconfirm, message, Image, Badge} from 'antd';
+import { ShoppingCartOutlined, DeleteOutlined, ArrowLeftOutlined,CreditCardOutlined } from '@ant-design/icons';
 import { useCart } from '../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
 import '../styles/OrderPage.css';
@@ -40,29 +23,33 @@ const OrderPage = () => {
       title: 'Produit',
       dataIndex: 'product',
       key: 'product',
-      render: (_, record) => (
-        <div className="product-cell">
-          <Image
-            src={record.image}
-            alt={record.name}
-            width={80}
-            height={80}
-            fallback="/placeholder-product.jpg"
-            preview={false}
-            className="product-image"
-          />
-          <div className="product-info">
-            <Text strong>{record.name}</Text>
-            <Text type="secondary">#{record.id}</Text>
+      render: (_: any, record) => {
+        console.log("📸 Image URL :", record.image); // 👈 ICI
+        return (
+          <div className="product-cell">
+            <Image
+              src={record.image?.startsWith('http') ? record.image : `http://localhost:5000/${record.image}`}
+              alt={record.name ? String(record.name) : ''}
+              width={80}
+              height={80}
+              fallback="/placeholder-product.jpg"
+              preview={false}
+              className="product-image"
+            />
+            <div className="product-info">
+              <Text strong>{record.name}</Text>
+              <Text type="secondary">#{record.id}</Text>
+            </div>
           </div>
-        </div>
-      ),
+        );
+      }
     },
+    
     {
       title: 'Prix unitaire',
       dataIndex: 'price',
       key: 'price',
-      render: (price) => (
+      render: (price: number) => (
         <Text strong>FCFA{price.toFixed(2)}</Text>
       ),
     },
@@ -70,12 +57,12 @@ const OrderPage = () => {
       title: 'Quantité',
       dataIndex: 'quantity',
       key: 'quantity',
-      render: (quantity, record) => (
+      render: (quantity: number, record: { id: number; }) => (
         <InputNumber
           min={1}
           max={99}
           defaultValue={quantity}
-          onChange={(value) => updateQuantity(record.id, value)}
+          onChange={(value) => value !== null && updateQuantity(record.id, value)}
           className="quantity-input"
         />
       ),
@@ -83,14 +70,14 @@ const OrderPage = () => {
     {
       title: 'Total',
       key: 'total',
-      render: (_, record) => (
+      render: (_: any, record: { price: number; quantity: number; }) => (
         <Text strong>FCFA{(record.price * record.quantity).toFixed(2)}</Text>
       ),
     },
     {
       title: 'Actions',
       key: 'actions',
-      render: (_, record) => (
+      render: (_: any, record: { id: number; }) => (
         <Popconfirm
           title="Supprimer ce produit ?"
           onConfirm={() => {
@@ -110,6 +97,8 @@ const OrderPage = () => {
       ),
     },
   ];
+
+  console.log("columns",columns);
 
   const handleCheckout = () => {
     navigate('/checkout');
