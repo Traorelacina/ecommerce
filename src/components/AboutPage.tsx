@@ -6,11 +6,11 @@ import '../styles/About.css';
 const AboutPage = () => {
   return (
     <div className="about-container">
-      <Card title="À Propos de TechBoutique" className="about-card">
+      <Card title="À Propos de Emarketafrica" className="about-card">
         <div className="about-section">
           <InfoCircleOutlined className="about-icon" />
           <h3>Notre Histoire</h3>
-          <p>Fondée en 2020, TechBoutique est devenue un leader dans la vente de produits technologiques innovants.</p>
+          <p>Fondée en 2025, Emarketafrica est devenue un leader dans la vente de produits technologiques innovants.</p>
         </div>
 
         <div className="about-section">
