@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 // Configuration d'Axios
-const API_URL = 'http://localhost:5000/api'; // URL fixe pour éviter l'erreur process
+const API_URL = 'https://ecommerce-backend-2-12tl.onrender.com/api';
 axios.defaults.withCredentials = true; // Pour les cookies
 
 interface User {

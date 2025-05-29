@@ -13,7 +13,7 @@ const getImageUrl = (imagePath) => {
   if (imagePath.startsWith('http')) return imagePath;
   
   // Utiliser l'URL complète du serveur backend
-  return `https://ecommerce-backend-dcp4.onrender.com${imagePath}`;
+  return `https://ecommerce-backend-2-12tl.onrender.com${imagePath}`;
 };
 const ProductsSection = () => {
   const [products, setProducts] = useState([]);
