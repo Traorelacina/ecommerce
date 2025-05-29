@@ -5,12 +5,25 @@ const API_URL = 'https://ecommerce-backend-2-12tl.onrender.com/api/products';
 
 // Interface pour le type Produit
 export interface Product {
-  _id?: string;
+  _id: string;
   name: string;
   description: string;
   price: number;
+  oldPrice?: number;
   image?: string;
   createdAt?: Date;
+  category?: string;
+  rating?: number;
+  stock: number;
+  isNew?: boolean;
+  isPromo?: boolean;
+  reviewCount?: number;
+  brand?: string;
+  weight?: number;
+  dimensions?: string;
+  specifications?: Record<string, string>;
+  longDescription?: string;
+  additionalImages?: string[];
 }
 
 // Ajouter un nouveau produit

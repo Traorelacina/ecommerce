@@ -10,7 +10,7 @@ const { Title, Text, Paragraph } = Typography;
 const { Meta } = Card;
 
 // Utilitaire pour les URLs d'images avec URL directe
-const getImageUrl = (imagePath) => {
+const getImageUrl = (imagePath: string | undefined): string => {
   if (!imagePath) return '/images/placeholder-product.jpg';
   if (imagePath.startsWith('http')) return imagePath;
   
@@ -30,7 +30,7 @@ const Home: React.FC = () => {
     const fetchProducts = async () => {
       try {
         const data = await getProducts();
-        setProducts(data.data); // ✅ extrait uniquement le tableau
+        setProducts(data); // Suppression de .data car getProducts retourne déjà Product[]
         setLoading(false);
         console.log(data);
       } catch (error) {
@@ -55,10 +55,15 @@ const Home: React.FC = () => {
   ];
 
   // Affiche un message de chargement ou d'erreur si nécessaire
-  const renderProductsSection = (productsToRender, title, icon, linkText, linkPath) => {
+  const renderProductsSection = (
+    productsToRender: Product[],
+    title: string,
+    icon: string,
+    linkText: string,
+    linkPath: string
+  ) => {
     if (loading) {
       return (
-        
         <div className="products-loading-container">
           <Spin size="large" />
           <p>Chargement des produits...</p>
@@ -91,7 +96,7 @@ const Home: React.FC = () => {
           </Button>
         </div>
         <Row gutter={[16, 24]}>
-          {productsToRender.map((product) => (
+          {productsToRender.map((product: Product) => (
             <Col key={product._id} xs={24} sm={12} md={8} lg={6}>
               <Link to={`/products/${product._id}`}>
                 <Card
