@@ -1,362 +1,279 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Form, 
-  Input, 
-  InputNumber, 
-  Switch, 
-  Button, 
-  message, 
-  Upload, 
-  Table, 
-  Space, 
-  Popconfirm,
-  Divider,
-  Card
-} from 'antd';
-import { 
-  UploadOutlined, 
-  DeleteOutlined 
-} from '@ant-design/icons';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import client from '../api/client';
-import '../styles/AddProductPage.css';
+import { Form, Input, InputNumber, Button, Upload, Select, message, Space, Card } from 'antd';
+import { UploadOutlined, PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
+import { createProduct } from '../services/productService';
+import { Product } from '../services/productService';
 
-interface ProductFormValues {
-  name: string;
-  description: string;
-  price: number;
-  oldPrice?: number;
-  category: string;
-  image: File | string;
-  rating?: number;
-  stock: number;
-  isNew?: boolean;
-  isPromo?: boolean;
-}
+const { TextArea } = Input;
+const { Option } = Select;
 
-interface Product {
-  _id: string;
-  name: string;
-  description: string;
-  price: number;
-  oldPrice?: number;
-  category: string;
-  image: string;
-  rating?: number;
-  stock: number;
-  isNew?: boolean;
-  isPromo?: boolean;
-}
-
-const AddProductPage = () => {
-  const [form] = Form.useForm();
+const AddProductPage: React.FC = () => {
   const navigate = useNavigate();
+  const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [fileList, setFileList] = useState<any[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [productsLoading, setProductsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      setProductsLoading(true);
-      const response = await client.get('/products');
-      setProducts(response.data.data);
-    } catch (error) {
-      message.error('Erreur lors du chargement des produits');
-      console.error('Error fetching products:', error);
-    } finally {
-      setProductsLoading(false);
-    }
-  };
-
-  const beforeUpload = (file: File) => {
-    const isImage = file.type.startsWith('image/');
-    if (!isImage) {
-      message.error('Vous ne pouvez uploader que des fichiers images!');
-    }
-    return isImage;
-  };
-
-  const handleUploadChange = (info: any) => {
-    let fileList = [...info.fileList];
-    fileList = fileList.slice(-1);
-    setFileList(fileList);
-    
-    if (info.file.status === 'done') {
-      message.success(`${info.file.name} fichier uploadé avec succès`);
-    } else if (info.file.status === 'error') {
-      message.error(`${info.file.name} échec de l'upload.`);
-    }
-  };
-
-  const handleDelete = async (productId: string) => {
-    try {
-      setProductsLoading(true);
-      console.log('Tentative de suppression du produit ID:', productId); // Log l'ID
-      
-      const response = await client.delete(`/products/${productId}`);
-      
-      if (response.data.success) {
-        message.success('Produit supprimé avec succès');
-        await fetchProducts(); // Rafraîchir la liste
-      } else {
-        throw new Error(response.data.message || 'Erreur lors de la suppression');
-      }
-    } catch (error: any) {
-      console.error('Erreur détaillée:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
-  
-      let errorMessage = 'Erreur lors de la suppression';
-      if (error.response?.status === 404) {
-        errorMessage = 'Produit introuvable - peut-être déjà supprimé';
-      } else if (error.response?.data?.message) {
-        errorMessage = error.response.data.message;
-      }
-  
-      message.error(errorMessage);
-    } finally {
-      setProductsLoading(false);
-    }
-  };
-  
-  const onFinish = async (values: ProductFormValues) => {
+  const onFinish = async (values: any) => {
     try {
       setLoading(true);
       
-      const formData = new FormData();
-      formData.append('name', values.name);
-      formData.append('description', values.description);
-      formData.append('price', values.price.toString());
-      if (values.oldPrice) formData.append('oldPrice', values.oldPrice.toString());
-      formData.append('category', values.category);
-      if (fileList.length > 0) {
-        formData.append('image', fileList[0].originFileObj);
-      }
-      formData.append('stock', values.stock.toString());
-      if (values.rating) formData.append('rating', values.rating.toString());
-      formData.append('isNew', values.isNew?.toString() || 'false');
-      formData.append('isPromo', values.isPromo?.toString() || 'false');
+      // Préparer les données du produit
+      const productData: Partial<Product> = {
+        name: values.name,
+        description: values.description,
+        price: values.price,
+        stock: values.stock,
+        category: values.category,
+        brand: values.brand,
+        weight: values.weight,
+        dimensions: values.dimensions,
+        specifications: values.specifications,
+        longDescription: values.longDescription,
+        isNew: values.isNew || false,
+        isPromo: values.isPromo || false,
+        oldPrice: values.oldPrice,
+        rating: values.rating || 0,
+        reviewCount: values.reviewCount || 0
+      };
 
-      const response = await client.post('/products', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      // Créer le produit
+      const response = await createProduct(productData);
       
-      if (response.status === 201) {
-        message.success('Produit ajouté avec succès');
-        form.resetFields();
-        setFileList([]);
-        fetchProducts(); // Rafraîchir la liste après ajout
-      } else {
-        throw new Error(response.data.message || 'Erreur lors de l\'ajout du produit');
-      }
-    } catch (error: any) {
-      let errorMessage = 'Erreur lors de l\'ajout du produit';
-      
-      if (error.response) {
-        errorMessage = error.response.data.message || errorMessage;
-      } else if (error.request) {
-        errorMessage = 'Le serveur ne répond pas. Vérifiez votre connexion.';
-      }
-      
-      message.error(errorMessage);
+      message.success('Produit créé avec succès');
+      navigate(`/products/${response._id}`);
+    } catch (error) {
+      message.error('Erreur lors de la création du produit');
       console.error('Erreur:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const columns = [
-    {
-      title: 'Image',
-      dataIndex: 'image',
-      key: 'image',
-      render: (image: string) => (
-        <img 
-          src={image?.startsWith('http') ? image : `https://ecommerce-backend-2-12tl.onrender.com${image}`} 
-          alt="Produit" 
-          style={{ width: 50, height: 50, objectFit: 'cover' }} 
-        />
-      ),
-    },
-    {
-      title: 'Nom',
-      dataIndex: 'name',
-      key: 'name',
-    },
-    {
-      title: 'Prix',
-      dataIndex: 'price',
-      key: 'price',
-      render: (price: number) => `${price} FCFA`,
-    },
-    {
-      title: 'Catégorie',
-      dataIndex: 'category',
-      key: 'category',
-    },
-    {
-      title: 'Stock',
-      dataIndex: 'stock',
-      key: 'stock',
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_: any, record: Product) => (
-        <Space size="middle">
-          <Popconfirm
-            title="Êtes-vous sûr de vouloir supprimer ce produit?"
-            onConfirm={() => handleDelete(record._id)}
-            okText="Oui"
-            cancelText="Non"
-          >
-            <Button danger icon={<DeleteOutlined />} />
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
+  const normFile = (e: any) => {
+    if (Array.isArray(e)) {
+      return e;
+    }
+    return e?.fileList;
+  };
 
   return (
-    <div className="add-product-page">
-      <h1>Gestion des produits</h1>
-      
-      <Card title="Liste des produits existants" style={{ marginBottom: 24 }}>
-        <Table
-          columns={columns}
-          dataSource={products}
-          rowKey="_id"
-          loading={productsLoading}
-          pagination={{ pageSize: 5 }}
-          scroll={{ x: true }}
-        />
-      </Card>
-
-      <Card title="Ajouter un nouveau produit">
+    <div className="container mx-auto px-4 py-8">
+      <Card title="Ajouter un nouveau produit" className="max-w-4xl mx-auto">
         <Form
           form={form}
           layout="vertical"
           onFinish={onFinish}
-          className="product-form"
+          initialValues={{
+            isNew: false,
+            isPromo: false,
+            rating: 0,
+            reviewCount: 0
+          }}
         >
-          <Form.Item 
-            name="name" 
-            label="Nom du produit" 
+          <Form.Item
+            name="name"
+            label="Nom du produit"
             rules={[{ required: true, message: 'Veuillez entrer le nom du produit' }]}
           >
-            <Input placeholder="Nom du produit" />
-          </Form.Item>
-
-          <Form.Item 
-            name="description" 
-            label="Description" 
-            rules={[{ required: true, message: 'Veuillez entrer une description' }]}
-          >
-            <Input.TextArea rows={4} placeholder="Description du produit" />
-          </Form.Item>
-
-          <Form.Item 
-            name="price" 
-            label="Prix" 
-            rules={[{ required: true, message: 'Veuillez entrer le prix', type: 'number' }]}
-          >
-            <InputNumber 
-              min={0} 
-              step={0.01} 
-              style={{ width: '100%' }} 
-              placeholder="Prix en FCFA" 
-            />
-          </Form.Item>
-
-          <Form.Item name="oldPrice" label="Ancien prix (optionnel)">
-            <InputNumber 
-              min={0} 
-              step={0.01} 
-              style={{ width: '100%' }} 
-              placeholder="Ancien prix en FCFA" 
-            />
-          </Form.Item>
-
-          <Form.Item 
-            name="category" 
-            label="Catégorie" 
-            rules={[{ required: true, message: 'Veuillez entrer la catégorie' }]}
-          >
-            <Input placeholder="Catégorie du produit" />
+            <Input />
           </Form.Item>
 
           <Form.Item
+            name="description"
+            label="Description courte"
+            rules={[{ required: true, message: 'Veuillez entrer une description' }]}
+          >
+            <TextArea rows={4} />
+          </Form.Item>
+
+          <Form.Item
+            name="longDescription"
+            label="Description détaillée"
+          >
+            <TextArea rows={6} />
+          </Form.Item>
+
+          <Space className="w-full" size="large">
+            <Form.Item
+              name="price"
+              label="Prix"
+              rules={[{ required: true, message: 'Veuillez entrer le prix' }]}
+            >
+              <InputNumber
+                min={0}
+                step={100}
+                formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={value => value!.replace(/\$\s?|(,*)/g, '')}
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+
+            <Form.Item
+              name="oldPrice"
+              label="Ancien prix"
+            >
+              <InputNumber
+                min={0}
+                step={100}
+                formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={value => value!.replace(/\$\s?|(,*)/g, '')}
+                style={{ width: '100%' }}
+              />
+            </Form.Item>
+          </Space>
+
+          <Space className="w-full" size="large">
+            <Form.Item
+              name="stock"
+              label="Stock"
+              rules={[{ required: true, message: 'Veuillez entrer le stock' }]}
+            >
+              <InputNumber min={0} style={{ width: '100%' }} />
+            </Form.Item>
+
+            <Form.Item
+              name="category"
+              label="Catégorie"
+              rules={[{ required: true, message: 'Veuillez sélectionner une catégorie' }]}
+            >
+              <Select>
+                <Option value="electronics">Électronique</Option>
+                <Option value="clothing">Vêtements</Option>
+                <Option value="home">Maison</Option>
+                <Option value="beauty">Beauté</Option>
+                <Option value="sports">Sports</Option>
+              </Select>
+            </Form.Item>
+          </Space>
+
+          <Space className="w-full" size="large">
+            <Form.Item
+              name="brand"
+              label="Marque"
+            >
+              <Input />
+            </Form.Item>
+
+            <Form.Item
+              name="weight"
+              label="Poids (kg)"
+            >
+              <InputNumber min={0} step={0.1} style={{ width: '100%' }} />
+            </Form.Item>
+          </Space>
+
+          <Form.Item
+            name="dimensions"
+            label="Dimensions"
+          >
+            <Input placeholder="ex: 10x20x30 cm" />
+          </Form.Item>
+
+          <Form.List name="specifications">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map(({ key, name, ...restField }) => (
+                  <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
+                    <Form.Item
+                      {...restField}
+                      name={[name, 'key']}
+                      rules={[{ required: true, message: 'Clé manquante' }]}
+                    >
+                      <Input placeholder="Clé" />
+                    </Form.Item>
+                    <Form.Item
+                      {...restField}
+                      name={[name, 'value']}
+                      rules={[{ required: true, message: 'Valeur manquante' }]}
+                    >
+                      <Input placeholder="Valeur" />
+                    </Form.Item>
+                    <MinusCircleOutlined onClick={() => remove(name)} />
+                  </Space>
+                ))}
+                <Form.Item>
+                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                    Ajouter une spécification
+                  </Button>
+                </Form.Item>
+              </>
+            )}
+          </Form.List>
+
+          <Form.Item
             name="image"
-            label="Image du produit"
-            rules={[{ required: true, message: 'Veuillez sélectionner une image' }]}
+            label="Image principale"
+            valuePropName="fileList"
+            getValueFromEvent={normFile}
+            rules={[{ required: true, message: 'Veuillez télécharger une image' }]}
           >
             <Upload
-              beforeUpload={beforeUpload}
-              onChange={handleUploadChange}
-              fileList={fileList}
-              accept="image/*"
               listType="picture"
               maxCount={1}
+              beforeUpload={() => false}
+              onChange={({ fileList }) => setFileList(fileList)}
             >
-              <Button icon={<UploadOutlined />}>Sélectionner l'image</Button>
+              <Button icon={<UploadOutlined />}>Télécharger</Button>
             </Upload>
           </Form.Item>
 
-          <Form.Item 
-            name="rating" 
-            label="Note (0-5)"
-            initialValue={3}
+          <Form.Item
+            name="additionalImages"
+            label="Images supplémentaires"
+            valuePropName="fileList"
+            getValueFromEvent={normFile}
           >
-            <InputNumber 
-              min={0} 
-              max={5} 
-              step={0.1} 
-              style={{ width: '100%' }} 
-            />
+            <Upload
+              listType="picture"
+              multiple
+              beforeUpload={() => false}
+            >
+              <Button icon={<UploadOutlined />}>Télécharger</Button>
+            </Upload>
           </Form.Item>
 
-          <Form.Item 
-            name="stock" 
-            label="Stock disponible" 
-            rules={[{ required: true, message: 'Veuillez entrer le stock', type: 'number' }]}
-          >
-            <InputNumber 
-              min={0} 
-              style={{ width: '100%' }} 
-              placeholder="Quantité en stock" 
-            />
-          </Form.Item>
+          <Space className="w-full" size="large">
+            <Form.Item
+              name="isNew"
+              valuePropName="checked"
+            >
+              <Select>
+                <Option value={true}>Nouveau</Option>
+                <Option value={false}>Non nouveau</Option>
+              </Select>
+            </Form.Item>
 
-          <Form.Item 
-            name="isNew" 
-            label="Nouveau produit" 
-            valuePropName="checked"
-            initialValue={false}
-          >
-            <Switch />
-          </Form.Item>
+            <Form.Item
+              name="isPromo"
+              valuePropName="checked"
+            >
+              <Select>
+                <Option value={true}>Promo</Option>
+                <Option value={false}>Non promo</Option>
+              </Select>
+            </Form.Item>
+          </Space>
 
-          <Form.Item 
-            name="isPromo" 
-            label="En promotion" 
-            valuePropName="checked"
-            initialValue={false}
-          >
-            <Switch />
-          </Form.Item>
+          <Space className="w-full" size="large">
+            <Form.Item
+              name="rating"
+              label="Note"
+            >
+              <InputNumber min={0} max={5} step={0.1} style={{ width: '100%' }} />
+            </Form.Item>
+
+            <Form.Item
+              name="reviewCount"
+              label="Nombre d'avis"
+            >
+              <InputNumber min={0} style={{ width: '100%' }} />
+            </Form.Item>
+          </Space>
 
           <Form.Item>
-            <Button type="primary" htmlType="submit" loading={loading} size="large">
-              Ajouter le produit
+            <Button type="primary" htmlType="submit" loading={loading} block>
+              Créer le produit
             </Button>
           </Form.Item>
         </Form>
