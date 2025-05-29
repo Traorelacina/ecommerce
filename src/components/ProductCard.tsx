@@ -1,95 +1,85 @@
 import React from 'react';
-import { Card, Button, Tag, message } from 'antd';
-import { ShoppingCartOutlined, EyeOutlined } from '@ant-design/icons';
+import { Card, Rate, Tag } from 'antd';
 import { Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
-import '../styles/ProductCard.css';
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  oldPrice?: number;
-  image: string;
-  isNew?: boolean;
-  isPromo?: boolean;
-  rating?: number;
-}
+import { ShoppingCartOutlined } from '@ant-design/icons';
 
 interface ProductCardProps {
-  product: Product;
-  showActions?: boolean;
+  id: string;
+  name: string;
+  image: string;
+  price: number;
+  oldPrice?: number;
+  rating?: number;
+  stock: number;
+  isNew?: boolean;
+  isPromo?: boolean;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, showActions = true }) => {
-  const { addToCart } = useCart();
-
-  const handleAddToCart = () => {
-    addToCart(product);
-    message.success(`${product.name} ajouté au panier !`);
-  };
-
-  const discountPercentage = product.oldPrice 
-    ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)
-    : 0;
-
+const ProductCard: React.FC<ProductCardProps> = ({
+  id,
+  name,
+  image,
+  price,
+  oldPrice,
+  rating = 0,
+  stock,
+  isNew,
+  isPromo
+}) => {
   return (
-    <Card
-      hoverable
-      className="product-card"
-      cover={
-        <div className="product-image-container">
-          <img 
-            alt={product.name} 
-            src={product.image || '/placeholder-product.jpg'} 
-            className="product-image"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = '/placeholder-product.jpg';
-            }}
-          />
-          <div className="product-badges">
-            {product.isNew && <Tag color="red">NOUVEAU</Tag>}
-            {product.isPromo && product.oldPrice && (
-              <Tag color="orange">-{discountPercentage}%</Tag>
+    <Link to={`/products/${id}`}>
+      <Card
+        hoverable
+        className="product-card"
+        cover={
+          <div className="relative">
+            <img
+              alt={name}
+              src={image}
+              className="w-full h-48 object-cover"
+            />
+            {isNew && (
+              <Tag color="blue" className="absolute top-2 left-2">
+                Nouveau
+              </Tag>
+            )}
+            {isPromo && (
+              <Tag color="red" className="absolute top-2 right-2">
+                Promo
+              </Tag>
             )}
           </div>
+        }
+        actions={[
+          <div className="flex items-center justify-center">
+            <ShoppingCartOutlined /> Voir détails
+          </div>
+        ]}
+      >
+        <div className="space-y-2">
+          <h3 className="text-lg font-semibold truncate">{name}</h3>
+          <div className="flex items-center space-x-2">
+            <Rate disabled defaultValue={rating} allowHalf className="text-sm" />
+            <span className="text-sm text-gray-500">
+              ({rating.toFixed(1)})
+            </span>
+          </div>
+          <div className="flex items-center space-x-2">
+            {oldPrice && (
+              <span className="text-sm text-gray-500 line-through">
+                {oldPrice.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}
+              </span>
+            )}
+            <span className="text-lg font-bold text-blue-600">
+              {price.toLocaleString('fr-FR', { style: 'currency', currency: 'XOF' })}
+            </span>
+          </div>
+          <div className="text-sm text-gray-500">
+            {stock > 0 ? `En stock (${stock})` : 'Rupture de stock'}
+          </div>
         </div>
-      }
-      actions={
-        showActions ? [
-          <Button 
-            type="primary" 
-            icon={<ShoppingCartOutlined />} 
-            onClick={handleAddToCart}
-            className="add-to-cart-btn"
-          >
-            Ajouter
-          </Button>,
-          <Link to={`/products/${product.id}`}>
-            <Button icon={<EyeOutlined />} className="view-details-btn">
-              Détails
-            </Button>
-          </Link>
-        ] : undefined
-      }
-    >
-      <div className="product-content">
-        <h3 className="product-name">{product.name}</h3>
-        
-        <div className="product-rating">
-          {product.rating !== undefined && (
-            <span className="rating">{'★'.repeat(Math.round(product.rating))}</span>
-          )}
-        </div>
-        
-        <div className="product-prices">
-          {product.oldPrice && (
-            <span className="old-price">€{product.oldPrice.toFixed(2)}</span>
-          )}
-          <span className="current-price">€{product.price.toFixed(2)}</span>
-        </div>
-      </div>
-    </Card>
+      </Card>
+    </Link>
   );
 };
 

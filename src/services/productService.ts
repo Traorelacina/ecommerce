@@ -42,7 +42,7 @@ export const getProduct = async (id: string): Promise<Product> => {
   }
 };
 
-export const createProduct = async (productData: Partial<Product>): Promise<Product> => {
+export const createProduct = async (productData: Partial<Product> & { image?: File; additionalImages?: File[] }): Promise<Product> => {
   try {
     const formData = new FormData();
     
@@ -54,16 +54,14 @@ export const createProduct = async (productData: Partial<Product>): Promise<Prod
     });
 
     // Ajouter l'image principale si elle existe
-    if (productData.image instanceof File) {
+    if (productData.image) {
       formData.append('image', productData.image);
     }
 
     // Ajouter les images supplémentaires si elles existent
     if (productData.additionalImages) {
-      productData.additionalImages.forEach((image, index) => {
-        if (image instanceof File) {
-          formData.append(`additionalImages`, image);
-        }
+      productData.additionalImages.forEach((image) => {
+        formData.append('additionalImages', image);
       });
     }
 
@@ -80,7 +78,7 @@ export const createProduct = async (productData: Partial<Product>): Promise<Prod
   }
 };
 
-export const updateProduct = async (id: string, productData: Partial<Product>): Promise<Product> => {
+export const updateProduct = async (id: string, productData: Partial<Product> & { image?: File; additionalImages?: File[] }): Promise<Product> => {
   try {
     const formData = new FormData();
     
@@ -92,16 +90,14 @@ export const updateProduct = async (id: string, productData: Partial<Product>): 
     });
 
     // Ajouter l'image principale si elle existe
-    if (productData.image instanceof File) {
+    if (productData.image) {
       formData.append('image', productData.image);
     }
 
     // Ajouter les images supplémentaires si elles existent
     if (productData.additionalImages) {
-      productData.additionalImages.forEach((image, index) => {
-        if (image instanceof File) {
-          formData.append(`additionalImages`, image);
-        }
+      productData.additionalImages.forEach((image) => {
+        formData.append('additionalImages', image);
       });
     }
 

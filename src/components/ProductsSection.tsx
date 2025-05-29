@@ -1,49 +1,68 @@
 // ProductsSection.jsx 
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Tag, Spin, Empty, Rate, Pagination, Input } from 'antd';
-import { Link } from 'react-router-dom';
+import { Card, Row, Col, Tag, Spin, Empty, Rate, Pagination, Input, Button } from 'antd';
+import { Link, useNavigate } from 'react-router-dom';
 import { SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import client from '../api/client';
 import '../styles/ProductsPage.css';
+import { getProducts, Product } from '../services/productService';
+import ProductCard from './ProductCard';
 
 const { Meta } = Card;
-// Utilitaire pour les URLs d'images avec URL directe
-const getImageUrl = (imagePath) => {
-  if (!imagePath) return '/placeholder.png';
-  if (imagePath.startsWith('http')) return imagePath;
-  
-  // Utiliser l'URL complète du serveur backend
-  return `https://ecommerce-backend-2-12tl.onrender.com${imagePath}`;
-};
-const ProductsSection = () => {
-  const [products, setProducts] = useState([]);
+
+interface ProductsSectionProps {
+  title: string;
+  category?: string;
+  limit?: number;
+  showPagination?: boolean;
+}
+
+const ProductsSection: React.FC<ProductsSectionProps> = ({
+  title,
+  category,
+  limit = 8,
+  showPagination = false
+}) => {
+  const navigate = useNavigate();
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState(null);
-  const pageSize = 12;
+  const [totalProducts, setTotalProducts] = useState(0);
+
+  const getImageUrl = (imagePath: string | undefined): string => {
+    if (!imagePath) return '/placeholder.png';
+    if (imagePath.startsWith('http')) return imagePath;
+    return `https://ecommerce-backend-2-12tl.onrender.com/${imagePath}`;
+  };
 
   useEffect(() => {
-    fetchProducts();
-  }, []);
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await getProducts();
+        let filteredProducts = data;
 
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const response = await client.get('/products');
-      if (response.data.success) {
-        setProducts(response.data.data);
-      } else {
-        throw new Error(response.data.message || 'Erreur lors du chargement des produits');
+        if (category) {
+          filteredProducts = data.filter(product => product.category === category);
+        }
+
+        setTotalProducts(filteredProducts.length);
+        const startIndex = (currentPage - 1) * limit;
+        const endIndex = startIndex + limit;
+        setProducts(filteredProducts.slice(startIndex, endIndex));
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setError('Erreur lors du chargement des produits');
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      setError(err.message || 'Une erreur est survenue lors du chargement des produits');
-      console.error('Erreur:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
+    fetchProducts();
+  }, [category, currentPage, limit]);
 
   // Filtrer les produits en fonction de la recherche et de la catégorie
   const filteredProducts = products.filter(product => {
@@ -56,23 +75,15 @@ const ProductsSection = () => {
   // Récupérer toutes les catégories uniques
   const categories = [...new Set(products.map(product => product.category))];
 
-  // Pagination
-  const paginatedProducts = filteredProducts.slice(
-    (currentPage - 1) * pageSize,
-    currentPage * pageSize
-  );
-
-  const handlePageChange = (page) => {
+  const handlePageChange = (page: number) => {
     setCurrentPage(page);
     window.scrollTo(0, 0);
   };
 
-  // Affiche un message de chargement ou d'erreur si nécessaire
   if (loading) {
     return (
-      <div className="products-loading-container">
+      <div className="flex justify-center items-center min-h-[400px]">
         <Spin size="large" />
-        <p>Chargement des produits...</p>
       </div>
     );
   }
@@ -81,122 +92,99 @@ const ProductsSection = () => {
     return (
       <div className="products-error-container">
         <p>Erreur: {error}</p>
-        <button onClick={fetchProducts}>Réessayer</button>
+        <button onClick={() => window.location.reload()}>Réessayer</button>
       </div>
     );
   }
 
+  if (products.length === 0) {
+    return null;
+  }
+
   return (
-    <div className="products-page">
-      <div className="products-header">
-        <h1>Nos Produits</h1>
-        
-        <div className="products-filters">
-          <Input
-            placeholder="Rechercher un produit..."
-            prefix={<SearchOutlined />}
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="search-input"
-          />
-          
-          <div className="category-filters">
-            <span className="category-label">Catégories:</span>
-            <Tag 
-              color={selectedCategory === null ? "blue" : "default"}
-              onClick={() => {
-                setSelectedCategory(null);
+    <section className="py-12">
+      <div className="container mx-auto px-4">
+        <div className="flex justify-between items-center mb-8">
+          <h2 className="text-2xl font-bold">{title}</h2>
+          {category && (
+            <Button type="link" onClick={() => navigate(`/category/${category}`)}>
+              Voir tout
+            </Button>
+          )}
+        </div>
+
+        <div className="products-header">
+          <div className="products-filters">
+            <Input
+              placeholder="Rechercher un produit..."
+              prefix={<SearchOutlined />}
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="category-tag"
-            >
-              Toutes
-            </Tag>
-            {categories.map(category => (
-              <Tag
-                key={category}
-                color={selectedCategory === category ? "blue" : "default"}
+              className="search-input"
+            />
+            
+            <div className="category-filters">
+              <span className="category-label">Catégories:</span>
+              <Tag 
+                color={selectedCategory === null ? "blue" : "default"}
                 onClick={() => {
-                  setSelectedCategory(category);
+                  setSelectedCategory(null);
                   setCurrentPage(1);
                 }}
                 className="category-tag"
               >
-                {category}
+                Toutes
               </Tag>
-            ))}
+              {categories.map(category => (
+                <Tag
+                  key={category}
+                  color={selectedCategory === category ? "blue" : "default"}
+                  onClick={() => {
+                    setSelectedCategory(category);
+                    setCurrentPage(1);
+                  }}
+                  className="category-tag"
+                >
+                  {category}
+                </Tag>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      {paginatedProducts.length === 0 ? (
-        <Empty description="Aucun produit trouvé" />
-      ) : (
-        <>
-          <Row gutter={[16, 24]}>
-            {paginatedProducts.map(product => (
-              <Col xs={24} sm={12} md={8} lg={6} key={product._id}>
-                <Link to={`/products/${product._id}`}>
-                  <Card
-                    hoverable
-                    className="product-card"
-                    cover={
-                      <div className="product-image-container">
-                        <img 
-                          alt={product.name}
-                          src={getImageUrl(product.image)}
-                          className="product-image"
-                        />
-                        {product.isNew && <div className="product-badge new">Nouveau</div>}
-                        {product.isPromo && <div className="product-badge promo">Promo</div>}
-                      </div>
-                    }
-                    actions={[
-                      <div className="card-action">
-                        <ShoppingCartOutlined /> Voir détails
-                      </div>
-                    ]}
-                  >
-                    <Meta
-                      title={product.name}
-                      description={
-                        <div className="product-meta">
-                          <div className="product-price">
-                            {product.oldPrice && (
-                              <span className="old-price">{product.oldPrice.toFixed(2)} FCFA</span>
-                            )}
-                            <span className="current-price">{product.price.toFixed(2)} FCFA</span>
-                          </div>
-                          <div className="product-rating">
-                            <Rate disabled defaultValue={product.rating} allowHalf />
-                            <span className="stock-info">
-                              {product.stock > 0 ? `En stock (${product.stock})` : 'Rupture de stock'}
-                            </span>
-                          </div>
-                        </div>
-                      }
-                    />
-                  </Card>
-                </Link>
-              </Col>
-            ))}
-          </Row>
-          
-          <div className="pagination-container">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {filteredProducts.map((product) => (
+            <ProductCard
+              key={product._id}
+              id={product._id}
+              name={product.name}
+              image={getImageUrl(product.image)}
+              price={product.price}
+              oldPrice={product.oldPrice}
+              rating={product.rating}
+              stock={product.stock}
+              isNew={product.isNew}
+              isPromo={product.isPromo}
+            />
+          ))}
+        </div>
+
+        {showPagination && totalProducts > limit && (
+          <div className="flex justify-center mt-8">
             <Pagination
               current={currentPage}
-              total={filteredProducts.length}
-              pageSize={pageSize}
+              total={totalProducts}
+              pageSize={limit}
               onChange={handlePageChange}
               showSizeChanger={false}
             />
           </div>
-        </>
-      )}
-    </div>
+        )}
+      </div>
+    </section>
   );
 };
 

@@ -2,9 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getProduct, Product } from '../services/productService';
 import { useCart } from '../context/CartContext';
-import { Button, InputNumber, message, Spin, Image, Tabs, Rate, Divider, Row, Col, Typography, Space } from 'antd';
+import { Button, InputNumber, message, Spin, Image, Tabs, Rate, Divider, Row, Col, Typography } from 'antd';
 import { ShoppingCartOutlined, HeartOutlined, ShareAltOutlined, EnvironmentOutlined, TruckOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
-import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 
 const { Title, Text, Paragraph } = Typography;
@@ -71,10 +70,7 @@ const ProductDetailPage: React.FC = () => {
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+    <div
       className="container mx-auto px-4 py-8"
     >
       <Row gutter={[32, 32]}>
@@ -251,7 +247,7 @@ const ProductDetailPage: React.FC = () => {
           </div>
         </Col>
       </Row>
-    </motion.div>
+    </div>
   );
 };
 

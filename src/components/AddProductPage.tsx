@@ -12,14 +12,13 @@ const AddProductPage: React.FC = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [fileList, setFileList] = useState<any[]>([]);
 
   const onFinish = async (values: any) => {
     try {
       setLoading(true);
       
       // Préparer les données du produit
-      const productData: Partial<Product> = {
+      const productData: Partial<Product> & { image?: File; additionalImages?: File[] } = {
         name: values.name,
         description: values.description,
         price: values.price,
@@ -34,7 +33,9 @@ const AddProductPage: React.FC = () => {
         isPromo: values.isPromo || false,
         oldPrice: values.oldPrice,
         rating: values.rating || 0,
-        reviewCount: values.reviewCount || 0
+        reviewCount: values.reviewCount || 0,
+        image: values.image?.[0]?.originFileObj,
+        additionalImages: values.additionalImages?.map((file: any) => file.originFileObj)
       };
 
       // Créer le produit
@@ -103,8 +104,8 @@ const AddProductPage: React.FC = () => {
               <InputNumber
                 min={0}
                 step={100}
-                formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={value => value!.replace(/\$\s?|(,*)/g, '')}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value ? parseInt(value.replace(/\$\s?|(,*)/g, '')) : 0}
                 style={{ width: '100%' }}
               />
             </Form.Item>
@@ -116,8 +117,8 @@ const AddProductPage: React.FC = () => {
               <InputNumber
                 min={0}
                 step={100}
-                formatter={value => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={value => value!.replace(/\$\s?|(,*)/g, '')}
+                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                parser={(value) => value ? parseInt(value.replace(/\$\s?|(,*)/g, '')) : 0}
                 style={{ width: '100%' }}
               />
             </Form.Item>
@@ -212,7 +213,6 @@ const AddProductPage: React.FC = () => {
               listType="picture"
               maxCount={1}
               beforeUpload={() => false}
-              onChange={({ fileList }) => setFileList(fileList)}
             >
               <Button icon={<UploadOutlined />}>Télécharger</Button>
             </Upload>
