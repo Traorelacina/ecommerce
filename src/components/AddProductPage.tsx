@@ -181,7 +181,7 @@ const AddProductPage = () => {
       key: 'image',
       render: (image: string) => (
         <img 
-          src={image?.startsWith('http') ? image : `http://localhost:5000${image}`} 
+          src={image?.startsWith('http') ? image : `https://ecommerce-backend-dcp4.onrender.com${image}`} 
           alt="Produit" 
           style={{ width: 50, height: 50, objectFit: 'cover' }} 
         />

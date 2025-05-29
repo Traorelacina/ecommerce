@@ -1,7 +1,7 @@
 // src/services/authService.ts
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'https://ecommerce-backend-dcp4.onrender.com/api/auth';
 
 export const register = (username: string, email: string, password: string) => {
   return axios.post(API_URL + '/register', {

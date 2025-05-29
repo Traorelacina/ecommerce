@@ -15,7 +15,7 @@ const getImageUrl = (imagePath) => {
   if (imagePath.startsWith('http')) return imagePath;
   
   // Utiliser l'URL complète du serveur backend
-  return `http://localhost:5000${imagePath}`;
+  return `https://ecommerce-backend-dcp4.onrender.com${imagePath}`;
 };
 
 const Home: React.FC = () => {

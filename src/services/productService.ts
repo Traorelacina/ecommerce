@@ -1,7 +1,7 @@
 // src/services/productService.ts
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/products';
+const API_URL = 'https://ecommerce-backend-dcp4.onrender.com/api/products';
 
 // Interface pour le type Produit
 export interface Product {
