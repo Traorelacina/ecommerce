@@ -3,7 +3,7 @@ import { Layout } from 'antd';
 import { Outlet } from 'react-router-dom';
 import HeaderComponent from './components/Header';
 import FooterComponent from './components/Footer';
-import { CartProvider } from './context/CartContext';
+import { CartProvider } from './data/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import './App.css';
 

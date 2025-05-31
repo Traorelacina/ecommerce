@@ -1,7 +1,7 @@
 import React from 'react';
 import { Table, Button, InputNumber, Space, Typography, Card, Divider, Popconfirm, message, Image, Badge} from 'antd';
 import { ShoppingCartOutlined, DeleteOutlined, ArrowLeftOutlined,CreditCardOutlined } from '@ant-design/icons';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../data/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
 import '../styles/OrderPage.css';
 

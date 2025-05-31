@@ -1,131 +1,140 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Table, 
-  Card, 
-  Typography, 
-  Space, 
-  Tag, 
+import { useNavigate } from 'react-router-dom';
+import { getOrders } from '../services/orderService';
+import {
+  Table,
+  Tag,
   Button,
-  Empty,
-  Spin
+  Card,
+  Spin,
+  message,
+  Space,
+  Typography
 } from 'antd';
-import { 
-  CheckCircleOutlined,
-  HistoryOutlined,
-  HomeOutlined
-} from '@ant-design/icons';
-import { Link } from 'react-router-dom';
-import '../styles/OrderConfirmation.css';
+import { EyeOutlined } from '@ant-design/icons';
 
-const { Title, Text } = Typography;
+const { Title } = Typography;
 
-const PaymentHistory = () => {
+const OrderHistory = () => {
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [paymentHistory, setPaymentHistory] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Simuler un chargement de données
-    const timer = setTimeout(() => {
-      // Récupérer l'historique depuis le localStorage ou initialiser avec un tableau vide
-      const storedHistory = JSON.parse(localStorage.getItem('paymentSimulations')) || [];
-      setPaymentHistory(storedHistory);
-      setLoading(false);
-    }, 800);
-
-    return () => clearTimeout(timer);
+    fetchOrders();
   }, []);
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true);
+      const data = await getOrders();
+      setOrders(data);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      message.error('Erreur lors du chargement des commandes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStatusColor = (status) => {
+    const colors = {
+      pending: 'warning',
+      processing: 'processing',
+      shipped: 'info',
+      delivered: 'success',
+      cancelled: 'error'
+    };
+    return colors[status] || 'default';
+  };
+
+  const getStatusText = (status) => {
+    const texts = {
+      pending: 'En attente',
+      processing: 'En cours de traitement',
+      shipped: 'Expédiée',
+      delivered: 'Livrée',
+      cancelled: 'Annulée'
+    };
+    return texts[status] || status;
+  };
 
   const columns = [
     {
-      title: 'Référence',
-      dataIndex: 'orderId',
-      key: 'orderId',
-      render: (text) => <Text strong>{text}</Text>,
+      title: 'Numéro de commande',
+      dataIndex: '_id',
+      key: '_id',
+      render: (id) => `#${id.slice(-6).toUpperCase()}`
     },
     {
       title: 'Date',
-      dataIndex: 'date',
-      key: 'date',
-      render: (date) => new Date(date).toLocaleString(),
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (date) => new Date(date).toLocaleDateString('fr-FR')
     },
     {
-      title: 'Montant',
-      dataIndex: 'amount',
-      key: 'amount',
-      render: (amount) => `FCFA ${amount.toFixed(2)}`,
-      align: 'right',
-    },
-    {
-      title: 'Méthode',
-      dataIndex: 'paymentMethod',
-      key: 'paymentMethod',
+      title: 'Total',
+      dataIndex: 'total',
+      key: 'total',
+      render: (total) =>
+        total.toLocaleString('fr-FR', {
+          style: 'currency',
+          currency: 'XOF'
+        })
     },
     {
       title: 'Statut',
+      dataIndex: 'status',
       key: 'status',
-      render: () => (
-        <Tag icon={<CheckCircleOutlined />} color="success">
-          Réussi
-        </Tag>
-      ),
+      render: (status) => (
+        <Tag color={getStatusColor(status)}>{getStatusText(status)}</Tag>
+      )
     },
+    {
+      title: 'Actions',
+      key: 'actions',
+      render: (_, record) => (
+        <Button
+          type="link"
+          icon={<EyeOutlined />}
+          onClick={() => navigate(`/orders/${record._id}`)}
+        >
+          Voir les détails
+        </Button>
+      )
+    }
   ];
 
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
   return (
-    <div className="history-container">
-      <Space direction="vertical" size="large" style={{ width: '100%' }}>
-        <Title level={2}>
-          <HistoryOutlined /> Historique des simulations
+    <div className="py-8">
+      <div className="max-w-6xl mx-auto">
+        <Title level={2} className="mb-8">
+          Historique des commandes
         </Title>
 
-        <Text type="secondary">
-          Consultez l'historique de vos simulations de paiement réussies
-        </Text>
-
         <Card>
-          {loading ? (
-            <div className="loading-container">
-              <Spin size="large" />
-              <Text>Chargement de l'historique...</Text>
-            </div>
-          ) : paymentHistory.length > 0 ? (
-            <Table
-              columns={columns}
-              dataSource={paymentHistory}
-              rowKey="orderId"
-              pagination={{ pageSize: 5 }}
-              bordered
-            />
-          ) : (
-            <Empty
-              description="Aucune simulation de paiement trouvée"
-              image={Empty.PRESENTED_IMAGE_SIMPLE}
-            >
-              <Button type="primary" onClick={() => window.location.href = '/'}>
-                <HomeOutlined /> Retour à l'accueil
-              </Button>
-            </Empty>
-          )}
+          <Table
+            columns={columns}
+            dataSource={orders}
+            rowKey="_id"
+            pagination={{
+              pageSize: 10,
+              showSizeChanger: true,
+              showTotal: (total) => `Total: ${total} commandes`
+            }}
+          />
         </Card>
-
-        <Space>
-          <Button 
-            type="default" 
-            onClick={() => window.location.href = '/'}
-            icon={<HomeOutlined />}
-          >
-            Accueil
-          </Button>
-          <Button 
-            type="primary" 
-            onClick={() => window.location.href = '/checkout'}
-          >
-            Nouvelle simulation
-          </Button>
-        </Space>
-      </Space>
+      </div>
     </div>
   );
 };
 
-export default PaymentHistory;
+export default OrderHistory; 

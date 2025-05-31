@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getProduct, Product } from '../services/productService';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../data/CartContext';
 import { Button, InputNumber, message, Spin, Image, Tabs, Rate, Divider, Row, Col, Typography } from 'antd';
 import { ShoppingCartOutlined, HeartOutlined, ShareAltOutlined, EnvironmentOutlined, TruckOutlined, SafetyCertificateOutlined } from '@ant-design/icons';
 import { useAuth } from '../context/AuthContext';

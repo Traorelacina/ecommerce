@@ -3,7 +3,7 @@ import { Row, Col, Card, Carousel, Typography, Button, Space,  Rate, Empty, Spin
 import { ShoppingCartOutlined, FireOutlined, StarOutlined } from '@ant-design/icons';
 import { useNavigate, Link } from 'react-router-dom';
 import { Product, getProducts } from '../services/productService';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../data/CartContext';
 import '../styles/Home.css';
 
 const { Title, Text, Paragraph } = Typography;

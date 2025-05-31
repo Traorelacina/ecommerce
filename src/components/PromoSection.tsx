@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Spin } from 'antd';
 import { ArrowRightOutlined, ShoppingCartOutlined, FieldTimeOutlined } from '@ant-design/icons';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../data/CartContext';
 import client from '../api/client';
 import '../styles/PromoSection.css';
 

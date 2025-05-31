@@ -1,14 +1,11 @@
 // ProductsSection.jsx 
 import React, { useState, useEffect } from 'react';
-import { Card, Row, Col, Tag, Spin, Empty, Rate, Pagination, Input, Button } from 'antd';
-import { Link, useNavigate } from 'react-router-dom';
-import { SearchOutlined, ShoppingCartOutlined } from '@ant-design/icons';
-import client from '../api/client';
+import { Card, Tag, Spin, Pagination, Input, Button } from 'antd';
+import { useNavigate } from 'react-router-dom';
+import { SearchOutlined } from '@ant-design/icons';
 import '../styles/ProductsPage.css';
 import { getProducts, Product } from '../services/productService';
 import ProductCard from './ProductCard';
-
-const { Meta } = Card;
 
 interface ProductsSectionProps {
   title: string;
@@ -26,10 +23,10 @@ const ProductsSection: React.FC<ProductsSectionProps> = ({
   const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [totalProducts, setTotalProducts] = useState(0);
 
   const getImageUrl = (imagePath: string | undefined): string => {

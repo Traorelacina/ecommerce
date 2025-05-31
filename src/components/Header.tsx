@@ -81,7 +81,8 @@ const HeaderComponent = () => {
           
           <div className="logo-container">
         <Link to="/" className="site-logo">
-          <img src={logo} alt="TechBoutique Logo" className="logo-image" />
+          <img src="/logob.jpg" alt="TechBoutique Logo" className="logo-image" />
+
         </Link>
       </div>
           <nav className="desktop-navigation">

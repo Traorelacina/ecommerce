@@ -1,24 +1,32 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Form, Input, InputNumber, Button, Upload, Select, message, Space, Card } from 'antd';
+import {
+  Form,
+  Input,
+  InputNumber,
+  Select,
+  Button,
+  Upload,
+  Switch,
+  message,
+  Card,
+  Space
+} from 'antd';
 import { UploadOutlined, PlusOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { createProduct } from '../services/productService';
-import { Product } from '../services/productService';
 
 const { TextArea } = Input;
 const { Option } = Select;
 
-const AddProductPage: React.FC = () => {
-  const navigate = useNavigate();
+const AddProductPage = () => {
   const [form] = Form.useForm();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  const onFinish = async (values: any) => {
+  const onFinish = async (values) => {
     try {
       setLoading(true);
-      
-      // Préparer les données du produit
-      const productData: Partial<Product> & { image?: File; additionalImages?: File[] } = {
+      const productData = {
         name: values.name,
         description: values.description,
         price: values.price,
@@ -27,31 +35,40 @@ const AddProductPage: React.FC = () => {
         brand: values.brand,
         weight: values.weight,
         dimensions: values.dimensions,
-        specifications: values.specifications,
+        specifications: values.specifications.reduce((acc, spec) => {
+          acc[spec.key] = spec.value;
+          return acc;
+        }, {}),
         longDescription: values.longDescription,
-        isNew: values.isNew || false,
-        isPromo: values.isPromo || false,
-        oldPrice: values.oldPrice,
-        rating: values.rating || 0,
-        reviewCount: values.reviewCount || 0,
-        image: values.image?.[0]?.originFileObj,
-        additionalImages: values.additionalImages?.map((file: any) => file.originFileObj)
+        isNew: values.isNew,
+        isPromo: values.isPromo,
+        oldPrice: values.isPromo ? values.oldPrice : undefined,
+        rating: 0,
+        reviewCount: 0
       };
 
-      // Créer le produit
-      const response = await createProduct(productData);
-      
+      if (values.image?.[0]?.originFileObj) {
+        productData.image = values.image[0].originFileObj;
+      }
+
+      if (values.additionalImages?.length > 0) {
+        productData.additionalImages = values.additionalImages.map(
+          (file) => file.originFileObj
+        );
+      }
+
+      await createProduct(productData);
       message.success('Produit créé avec succès');
-      navigate(`/products/${response._id}`);
+      navigate('/products');
     } catch (error) {
+      console.error('Error creating product:', error);
       message.error('Erreur lors de la création du produit');
-      console.error('Erreur:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const normFile = (e: any) => {
+  const normFile = (e) => {
     if (Array.isArray(e)) {
       return e;
     }
@@ -59,7 +76,7 @@ const AddProductPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="py-8">
       <Card title="Ajouter un nouveau produit" className="max-w-4xl mx-auto">
         <Form
           form={form}
@@ -68,8 +85,7 @@ const AddProductPage: React.FC = () => {
           initialValues={{
             isNew: false,
             isPromo: false,
-            rating: 0,
-            reviewCount: 0
+            specifications: [{ key: '', value: '' }]
           }}
         >
           <Form.Item
@@ -95,85 +111,66 @@ const AddProductPage: React.FC = () => {
             <TextArea rows={6} />
           </Form.Item>
 
-          <Space className="w-full" size="large">
-            <Form.Item
-              name="price"
-              label="Prix"
-              rules={[{ required: true, message: 'Veuillez entrer le prix' }]}
-            >
-              <InputNumber
-                min={0}
-                step={100}
-                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={(value) => value ? parseInt(value.replace(/\$\s?|(,*)/g, '')) : 0}
-                style={{ width: '100%' }}
-              />
-            </Form.Item>
+          <Form.Item
+            name="price"
+            label="Prix"
+            rules={[{ required: true, message: 'Veuillez entrer le prix' }]}
+          >
+            <InputNumber
+              min={0}
+              formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+              parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
+              className="w-full"
+            />
+          </Form.Item>
 
-            <Form.Item
-              name="oldPrice"
-              label="Ancien prix"
-            >
-              <InputNumber
-                min={0}
-                step={100}
-                formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={(value) => value ? parseInt(value.replace(/\$\s?|(,*)/g, '')) : 0}
-                style={{ width: '100%' }}
-              />
-            </Form.Item>
-          </Space>
+          <Form.Item
+            name="stock"
+            label="Stock"
+            rules={[{ required: true, message: 'Veuillez entrer le stock' }]}
+          >
+            <InputNumber min={0} className="w-full" />
+          </Form.Item>
 
-          <Space className="w-full" size="large">
-            <Form.Item
-              name="stock"
-              label="Stock"
-              rules={[{ required: true, message: 'Veuillez entrer le stock' }]}
-            >
-              <InputNumber min={0} style={{ width: '100%' }} />
-            </Form.Item>
+          <Form.Item
+            name="category"
+            label="Catégorie"
+            rules={[{ required: true, message: 'Veuillez sélectionner une catégorie' }]}
+          >
+            <Select>
+              <Option value="electronics">Électronique</Option>
+              <Option value="clothing">Vêtements</Option>
+              <Option value="home">Maison</Option>
+              <Option value="beauty">Beauté</Option>
+              <Option value="sports">Sports</Option>
+            </Select>
+          </Form.Item>
 
-            <Form.Item
-              name="category"
-              label="Catégorie"
-              rules={[{ required: true, message: 'Veuillez sélectionner une catégorie' }]}
-            >
-              <Select>
-                <Option value="electronics">Électronique</Option>
-                <Option value="clothing">Vêtements</Option>
-                <Option value="home">Maison</Option>
-                <Option value="beauty">Beauté</Option>
-                <Option value="sports">Sports</Option>
-              </Select>
-            </Form.Item>
-          </Space>
+          <Form.Item
+            name="brand"
+            label="Marque"
+            rules={[{ required: true, message: 'Veuillez entrer la marque' }]}
+          >
+            <Input />
+          </Form.Item>
 
-          <Space className="w-full" size="large">
-            <Form.Item
-              name="brand"
-              label="Marque"
-            >
-              <Input />
-            </Form.Item>
-
-            <Form.Item
-              name="weight"
-              label="Poids (kg)"
-            >
-              <InputNumber min={0} step={0.1} style={{ width: '100%' }} />
-            </Form.Item>
-          </Space>
+          <Form.Item
+            name="weight"
+            label="Poids (kg)"
+          >
+            <InputNumber min={0} step={0.1} className="w-full" />
+          </Form.Item>
 
           <Form.Item
             name="dimensions"
-            label="Dimensions"
+            label="Dimensions (L x l x H en cm)"
           >
-            <Input placeholder="ex: 10x20x30 cm" />
+            <Input placeholder="30 x 20 x 10" />
           </Form.Item>
 
           <Form.List name="specifications">
             {(fields, { add, remove }) => (
-              <>
+              <div className="space-y-4">
                 {fields.map(({ key, name, ...restField }) => (
                   <Space key={key} style={{ display: 'flex', marginBottom: 8 }} align="baseline">
                     <Form.Item
@@ -194,11 +191,16 @@ const AddProductPage: React.FC = () => {
                   </Space>
                 ))}
                 <Form.Item>
-                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                  <Button
+                    type="dashed"
+                    onClick={() => add()}
+                    block
+                    icon={<PlusOutlined />}
+                  >
                     Ajouter une spécification
                   </Button>
                 </Form.Item>
-              </>
+              </div>
             )}
           </Form.List>
 
@@ -233,43 +235,45 @@ const AddProductPage: React.FC = () => {
             </Upload>
           </Form.Item>
 
-          <Space className="w-full" size="large">
-            <Form.Item
-              name="isNew"
-              valuePropName="checked"
-            >
-              <Select>
-                <Option value={true}>Nouveau</Option>
-                <Option value={false}>Non nouveau</Option>
-              </Select>
-            </Form.Item>
+          <Form.Item
+            name="isNew"
+            label="Nouveau produit"
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
 
-            <Form.Item
-              name="isPromo"
-              valuePropName="checked"
-            >
-              <Select>
-                <Option value={true}>Promo</Option>
-                <Option value={false}>Non promo</Option>
-              </Select>
-            </Form.Item>
-          </Space>
+          <Form.Item
+            name="isPromo"
+            label="Produit en promotion"
+            valuePropName="checked"
+          >
+            <Switch />
+          </Form.Item>
 
-          <Space className="w-full" size="large">
-            <Form.Item
-              name="rating"
-              label="Note"
-            >
-              <InputNumber min={0} max={5} step={0.1} style={{ width: '100%' }} />
-            </Form.Item>
-
-            <Form.Item
-              name="reviewCount"
-              label="Nombre d'avis"
-            >
-              <InputNumber min={0} style={{ width: '100%' }} />
-            </Form.Item>
-          </Space>
+          <Form.Item
+            noStyle
+            shouldUpdate={(prevValues, currentValues) =>
+              prevValues.isPromo !== currentValues.isPromo
+            }
+          >
+            {({ getFieldValue }) =>
+              getFieldValue('isPromo') ? (
+                <Form.Item
+                  name="oldPrice"
+                  label="Ancien prix"
+                  rules={[{ required: true, message: 'Veuillez entrer l\'ancien prix' }]}
+                >
+                  <InputNumber
+                    min={0}
+                    formatter={(value) => `${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
+                    parser={(value) => value.replace(/\$\s?|(,*)/g, '')}
+                    className="w-full"
+                  />
+                </Form.Item>
+              ) : null
+            }
+          </Form.Item>
 
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading} block>
@@ -282,4 +286,4 @@ const AddProductPage: React.FC = () => {
   );
 };
 
-export default AddProductPage;
+export default AddProductPage; 

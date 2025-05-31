@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+// Utiliser import.meta.env pour les variables d'environnement dans Vite
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 export const getOrders = async () => {
   try {
@@ -49,4 +50,4 @@ export const deleteOrder = async (id) => {
     console.error('Error deleting order:', error);
     throw error;
   }
-}; 
+};
