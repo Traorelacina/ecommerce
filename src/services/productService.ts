@@ -1,5 +1,5 @@
 // src/services/productService.ts
-import client from '../api/client';
+import client from '../api/client.tsx';
 
 export interface Product {
   _id: string;
