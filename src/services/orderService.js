@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Utiliser import.meta.env pour les variables d'environnement dans Vite
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const API_URL = import.meta.env.VITE_API_URL || 'https://ecommerce-backend-2-12tl.onrender.com';
 
 export const getOrders = async () => {
   try {
