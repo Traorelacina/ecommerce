@@ -1,4 +1,4 @@
-import client from '../api/client.js';
+import client from '../api/client.tsx';
 
 // Interface pour les articles de commande
 export const OrderStatus = {
