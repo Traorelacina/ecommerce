@@ -1,53 +1,179 @@
-import axios from 'axios';
+import client from '../api/client.js';
 
-// Utiliser import.meta.env pour les variables d'environnement dans Vite
-const API_URL = import.meta.env.VITE_API_URL || 'https://ecommerce-backend-2-12tl.onrender.com';
-
-export const getOrders = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/orders`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching orders:', error);
-    throw error;
-  }
+// Interface pour les articles de commande
+export const OrderStatus = {
+  PENDING: 'pending',
+  CONFIRMED: 'confirmed',
+  PROCESSING: 'processing',
+  SHIPPED: 'shipped',
+  DELIVERED: 'delivered',
+  CANCELLED: 'cancelled'
 };
 
-export const getOrder = async (id) => {
-  try {
-    const response = await axios.get(`${API_URL}/orders/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching order:', error);
-    throw error;
-  }
-};
-
+// Créer une nouvelle commande
 export const createOrder = async (orderData) => {
   try {
-    const response = await axios.post(`${API_URL}/orders`, orderData);
+    console.log('Création de commande avec les données:', orderData);
+    const response = await client.post('/orders', orderData);
+    console.log('Commande créée avec succès:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error creating order:', error);
+    console.error('Erreur lors de la création de la commande:', error);
     throw error;
   }
 };
 
-export const updateOrderStatus = async (id, status) => {
+// Récupérer toutes les commandes
+export const getOrders = async () => {
   try {
-    const response = await axios.patch(`${API_URL}/orders/${id}`, { status });
+    const response = await client.get('/orders');
     return response.data;
   } catch (error) {
-    console.error('Error updating order status:', error);
+    console.error('Erreur lors de la récupération des commandes:', error);
     throw error;
   }
 };
 
-export const deleteOrder = async (id) => {
+// Récupérer une commande par ID
+export const getOrder = async (orderId) => {
   try {
-    await axios.delete(`${API_URL}/orders/${id}`);
+    const response = await client.get(`/orders/${orderId}`);
+    return response.data;
   } catch (error) {
-    console.error('Error deleting order:', error);
+    console.error('Erreur lors de la récupération de la commande:', error);
     throw error;
   }
+};
+
+// Récupérer les commandes d'un utilisateur
+export const getUserOrders = async (userId) => {
+  try {
+    const response = await client.get(`/orders/user/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la récupération des commandes utilisateur:', error);
+    throw error;
+  }
+};
+
+// Mettre à jour le statut d'une commande
+export const updateOrderStatus = async (orderId, status) => {
+  try {
+    const response = await client.put(`/orders/${orderId}/status`, { status });
+    console.log('Statut de commande mis à jour:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du statut:', error);
+    throw error;
+  }
+};
+
+// Mettre à jour une commande complète
+export const updateOrder = async (orderId, orderData) => {
+  try {
+    const response = await client.put(`/orders/${orderId}`, orderData);
+    console.log('Commande mise à jour:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour de la commande:', error);
+    throw error;
+  }
+};
+
+// Annuler une commande
+export const cancelOrder = async (orderId) => {
+  try {
+    const response = await client.put(`/orders/${orderId}/cancel`);
+    console.log('Commande annulée:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de l\'annulation de la commande:', error);
+    throw error;
+  }
+};
+
+// Supprimer une commande
+export const deleteOrder = async (orderId) => {
+  try {
+    await client.delete(`/orders/${orderId}`);
+    console.log('Commande supprimée avec succès');
+  } catch (error) {
+    console.error('Erreur lors de la suppression de la commande:', error);
+    throw error;
+  }
+};
+
+// Confirmer une commande
+export const confirmOrder = async (orderId) => {
+  try {
+    const response = await client.put(`/orders/${orderId}/confirm`);
+    console.log('Commande confirmée:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Erreur lors de la confirmation de la commande:', error);
+    throw error;
+  }
+};
+
+// Calculer le total d'une commande
+export const calculateOrderTotal = (items) => {
+  return items.reduce((total, item) => {
+    return total + (item.price * item.quantity);
+  }, 0);
+};
+
+// Validation des données de commande
+export const validateOrderData = (orderData) => {
+  const errors = [];
+
+  if (!orderData.items || orderData.items.length === 0) {
+    errors.push('La commande doit contenir au moins un article');
+  }
+
+  if (!orderData.shippingAddress) {
+    errors.push('L\'adresse de livraison est requise');
+  } else {
+    if (!orderData.shippingAddress.street) errors.push('La rue est requise');
+    if (!orderData.shippingAddress.city) errors.push('La ville est requise');
+    if (!orderData.shippingAddress.postalCode) errors.push('Le code postal est requis');
+    if (!orderData.shippingAddress.country) errors.push('Le pays est requis');
+  }
+
+  if (!orderData.totalAmount || orderData.totalAmount <= 0) {
+    errors.push('Le montant total doit être supérieur à 0');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+};
+
+// Formater les données de commande pour l'envoi
+export const formatOrderData = (cartItems, shippingAddress, userInfo = {}) => {
+  const items = cartItems.map(item => ({
+    productId: item._id || item.id,
+    name: item.name,
+    price: item.price,
+    quantity: item.quantity,
+    image: item.image
+  }));
+
+  const totalAmount = calculateOrderTotal(items);
+
+  return {
+    items,
+    totalAmount,
+    shippingAddress: {
+      street: shippingAddress.street,
+      city: shippingAddress.city,
+      postalCode: shippingAddress.postalCode,
+      country: shippingAddress.country,
+      firstName: shippingAddress.firstName || userInfo.firstName,
+      lastName: shippingAddress.lastName || userInfo.lastName,
+      phone: shippingAddress.phone || userInfo.phone
+    },
+    status: OrderStatus.PENDING,
+    userId: userInfo.userId || null
+  };
 };
